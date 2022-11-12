@@ -34,48 +34,30 @@ class DiffusionFluxSolution:
             real_t=real_t,
         )
 
-    @property
-    def ref_rhs(self):
-        return self.ref_diffusion_flux
-
-    def get(self):
-        return (self.ref_field, self.prefactor)
-
     def check_equals(self, diffusion_flux):
         np.testing.assert_allclose(
-            self.ref_diffusion_flux[1:-1, 1:-1],
-            diffusion_flux[1:-1, 1:-1],
+            self.ref_diffusion_flux,
+            diffusion_flux,
             atol=self.test_tol,
         )
 
 
 @pytest.mark.parametrize("precision", ["single", "double"])
 @pytest.mark.parametrize("n_values", [16])
-def test_arbit_grid_size_diffusion_flux_2d(n_values, precision):
+@pytest.mark.parametrize("reset_ghost_zone", [True, False])
+def test_diffusion_flux_2d(n_values, precision, reset_ghost_zone):
     real_t = get_real_t(precision)
     solution = DiffusionFluxSolution(n_values, precision)
-    diffusion_flux = np.zeros_like(solution.ref_diffusion_flux)
-    diffusion_flux_pyst_kernel = gen_diffusion_flux_pyst_kernel_2d(
-        real_t=real_t, num_threads=psutil.cpu_count(logical=False)
+    diffusion_flux = (
+        np.ones_like(solution.ref_diffusion_flux)
+        if reset_ghost_zone
+        else np.zeros_like(solution.ref_diffusion_flux)
     )
-    diffusion_flux_pyst_kernel(
-        diffusion_flux=diffusion_flux,
-        field=solution.ref_field,
-        prefactor=solution.prefactor,
-    )
-    solution.check_equals(diffusion_flux)
-
-
-@pytest.mark.parametrize("precision", ["single", "double"])
-@pytest.mark.parametrize("n_values", [16])
-def test_fixed_grid_size_diffusion_flux_2d(n_values, precision):
-    real_t = get_real_t(precision)
-    solution = DiffusionFluxSolution(n_values, precision)
-    diffusion_flux = np.zeros_like(solution.ref_diffusion_flux)
     diffusion_flux_pyst_kernel = gen_diffusion_flux_pyst_kernel_2d(
         real_t=real_t,
         num_threads=psutil.cpu_count(logical=False),
         fixed_grid_size=(n_values, n_values),
+        reset_ghost_zone=reset_ghost_zone,
     )
     diffusion_flux_pyst_kernel(
         diffusion_flux=diffusion_flux,

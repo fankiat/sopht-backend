@@ -59,15 +59,15 @@ class DiffusionTimestepEulerForwardSolution:
 
     def check_equals(self, new_field):
         np.testing.assert_allclose(
-            self.ref_new_field[1:-1, 1:-1, 1:-1],
-            new_field[1:-1, 1:-1, 1:-1],
+            self.ref_new_field,
+            new_field,
             atol=self.test_tol,
         )
 
     def check_vector_field_equals(self, new_vector_field):
         np.testing.assert_allclose(
-            self.ref_new_vector_field[..., 1:-1, 1:-1, 1:-1],
-            new_vector_field[..., 1:-1, 1:-1, 1:-1],
+            self.ref_new_vector_field,
+            new_vector_field,
             atol=self.test_tol,
         )
 
@@ -101,7 +101,7 @@ def test_vector_field_diffusion_timestep_euler_forward_3d(n_values, precision):
     real_t = get_real_t(precision)
     solution = DiffusionTimestepEulerForwardSolution(n_values, precision)
     vector_field = solution.ref_vector_field.copy()
-    diffusion_flux = np.zeros((n_values, n_values, n_values), dtype=real_t)
+    diffusion_flux = np.ones((n_values, n_values, n_values), dtype=real_t)
     vector_field_diffusion_timestep_euler_forward_pyst_kernel = (
         gen_diffusion_timestep_euler_forward_pyst_kernel_3d(
             real_t=real_t,
